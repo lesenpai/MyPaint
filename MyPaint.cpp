@@ -1,7 +1,7 @@
 /*
 	Made in 23.05.2019 by De-R. & Pl.
 	= 2020 =
-	Edited in 2.2 by Le
+	Edited in 02.02 by Le
 		- finished key assigment (bottom) line
 */
 
@@ -29,12 +29,12 @@ penFrame = CreatePen(PS_SOLID, 3, RGB(0, 122, 204)),
 penDefault = CreatePen(PS_SOLID, 6, RGB(0, 0, 0));
 RECT rect;
 
-/* точка - вершина фигуры */
+/* ГІГ®Г·ГЄГ  - ГўГҐГ°ГёГЁГ­Г  ГґГЁГЈГіГ°Г» */
 class Point {
 public:
 	int x, y;
-	double param; // значение точки на числовой окружности (за центр взят центр фигуры)
-	bool isConnectToNext; // при вызове Figure.paint соединять текущюю точку линией со следующей
+	double param; // Г§Г­Г Г·ГҐГ­ГЁГҐ ГІГ®Г·ГЄГЁ Г­Г  Г·ГЁГ±Г«Г®ГўГ®Г© Г®ГЄГ°ГіГ¦Г­Г®Г±ГІГЁ (Г§Г  Г¶ГҐГ­ГІГ° ГўГ§ГїГІ Г¶ГҐГ­ГІГ° ГґГЁГЈГіГ°Г»)
+	bool isConnectToNext; // ГЇГ°ГЁ ГўГ»Г§Г®ГўГҐ Figure.paint Г±Г®ГҐГ¤ГЁГ­ГїГІГј ГІГҐГЄГіГ№ГѕГѕ ГІГ®Г·ГЄГі Г«ГЁГ­ГЁГҐГ© Г±Г® Г±Г«ГҐГ¤ГіГѕГ№ГҐГ©
 	Point() {
 		this->x = 0;
 		this->y = 0;
@@ -55,7 +55,7 @@ public:
 	}
 };
 
-/* шаблоны фигур */
+/* ГёГ ГЎГ«Г®Г­Г» ГґГЁГЈГіГ° */
 enum class Pattern {
 	equilateral_triangle,
 	romb,
@@ -67,7 +67,7 @@ enum class Pattern {
 	long_triangle
 };
 
-/* шаблоны направлений */
+/* ГёГ ГЎГ«Г®Г­Г» Г­Г ГЇГ°Г ГўГ«ГҐГ­ГЁГ© */
 enum class Direction {
 	left,
 	right,
@@ -75,11 +75,11 @@ enum class Direction {
 	horisontal
 };
 
-/* фигура */
+/* ГґГЁГЈГіГ°Г  */
 class Figure {
 public:
 	int x, y, r;
-	vector<Point> ps; // массив точек
+	vector<Point> ps; // Г¬Г Г±Г±ГЁГў ГІГ®Г·ГҐГЄ
 	Pattern pattern;
 
 	Figure() {
@@ -93,12 +93,12 @@ public:
 		this->pattern = Pattern::square;
 	}
 
-	/* Задание точки на окружности фигуры */
+	/* Г‡Г Г¤Г Г­ГЁГҐ ГІГ®Г·ГЄГЁ Г­Г  Г®ГЄГ°ГіГ¦Г­Г®Г±ГІГЁ ГґГЁГЈГіГ°Г» */
 	void createPoint(double param, bool isConnectToNext = true) {
 		this->ps.push_back(Point(this->x + this->r * cos(param), this->y - this->r * sin(param), param, isConnectToNext));
 	}
 
-	/* Установка значений существующей точки*/
+	/* Г“Г±ГІГ Г­Г®ГўГЄГ  Г§Г­Г Г·ГҐГ­ГЁГ© Г±ГіГ№ГҐГ±ГІГўГіГѕГ№ГҐГ© ГІГ®Г·ГЄГЁ*/
 	void setPoint(int index, double param) {
 		if (index < 0 || index >= this->ps.size())
 			return;
@@ -107,33 +107,33 @@ public:
 		this->ps[index].param = param;
 	}
 
-	/* Соединеняет точеки линиями */
+	/* Г‘Г®ГҐГ¤ГЁГ­ГҐГ­ГїГҐГІ ГІГ®Г·ГҐГЄГЁ Г«ГЁГ­ГЁГїГ¬ГЁ */
 	void paint() {
 		for (int i = 0; i < this->ps.size(); i++) {
-			// Если точка не соединяется со следующей (в случае последней точки - с первой)
+			// Г…Г±Г«ГЁ ГІГ®Г·ГЄГ  Г­ГҐ Г±Г®ГҐГ¤ГЁГ­ГїГҐГІГ±Гї Г±Г® Г±Г«ГҐГ¤ГіГѕГ№ГҐГ© (Гў Г±Г«ГіГ·Г ГҐ ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ© ГІГ®Г·ГЄГЁ - Г± ГЇГҐГ°ГўГ®Г©)
 			if (!this->ps[i].isConnectToNext) {
-				// Если НЕ последняя точка
+				// Г…Г±Г«ГЁ ГЌГ… ГЇГ®Г±Г«ГҐГ¤Г­ГїГї ГІГ®Г·ГЄГ 
 				if (i != this->ps.size() - 1) {
 					MoveToEx(hDC, this->ps[i + 1].x, this->ps[i + 1].y, NULL);
 				}
 				continue;
 			}
-			// Если первая точка
+			// Г…Г±Г«ГЁ ГЇГҐГ°ГўГ Гї ГІГ®Г·ГЄГ 
 			if (i == 0) {
 				MoveToEx(hDC, this->ps[0].x, this->ps[0].y, NULL);
 			}
-			// Если последняя точка
+			// Г…Г±Г«ГЁ ГЇГ®Г±Г«ГҐГ¤Г­ГїГї ГІГ®Г·ГЄГ 
 			if (i == this->ps.size() - 1) {
 				LineTo(hDC, this->ps[0].x, this->ps[0].y);
 			}
-			// Если точка между первой и последней
+			// Г…Г±Г«ГЁ ГІГ®Г·ГЄГ  Г¬ГҐГ¦Г¤Гі ГЇГҐГ°ГўГ®Г© ГЁ ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ©
 			else {
 				LineTo(hDC, this->ps[i + 1].x, this->ps[i + 1].y);
 			}
 		}
 	}
 
-	/* поворот фигуры */
+	/* ГЇГ®ГўГ®Г°Г®ГІ ГґГЁГЈГіГ°Г» */
 	void rotate(Direction dir, double step) {
 		if (dir == Direction::left) {
 			for (int i = 0; i < this->ps.size(); i++) {
@@ -147,7 +147,7 @@ public:
 		}
 	}
 
-	/* отражение относительно себя */
+	/* Г®ГІГ°Г Г¦ГҐГ­ГЁГҐ Г®ГІГ­Г®Г±ГЁГІГҐГ«ГјГ­Г® Г±ГҐГЎГї */
 	void reflect(Direction dir) {
 		if (dir == Direction::vertical) {
 			for (int i = 0; i < this->ps.size(); i++) {
@@ -161,7 +161,7 @@ public:
 		}
 	}
 
-	/* переустановка вершин */
+	/* ГЇГҐГ°ГҐГіГ±ГІГ Г­Г®ГўГЄГ  ГўГҐГ°ГёГЁГ­ */
 	void rebuild() {
 		for (int i = 0; i < this->ps.size(); i++) {
 			this->setPoint(i, this->ps[i].param);
@@ -169,12 +169,12 @@ public:
 	}
 };
 
-vector<Figure> figures; // массив фигур
-int actI = -1, // индекс активной фигуры
-leftmostBorder = 130; // крайняя левая граница расположения для фигуры
-bool flag_shift = false; // переключатель на кнопку SHIFT (зеркальное отражение фигуры относительно себя)
+vector<Figure> figures; // Г¬Г Г±Г±ГЁГў ГґГЁГЈГіГ°
+int actI = -1, // ГЁГ­Г¤ГҐГЄГ± Г ГЄГІГЁГўГ­Г®Г© ГґГЁГЈГіГ°Г»
+leftmostBorder = 130; // ГЄГ°Г Г©Г­ГїГї Г«ГҐГўГ Гї ГЈГ°Г Г­ГЁГ¶Г  Г°Г Г±ГЇГ®Г«Г®Г¦ГҐГ­ГЁГї Г¤Г«Гї ГґГЁГЈГіГ°Г»
+bool flag_shift = false; // ГЇГҐГ°ГҐГЄГ«ГѕГ·Г ГІГҐГ«Гј Г­Г  ГЄГ­Г®ГЇГЄГі SHIFT (Г§ГҐГ°ГЄГ Г«ГјГ­Г®ГҐ Г®ГІГ°Г Г¦ГҐГ­ГЁГҐ ГґГЁГЈГіГ°Г» Г®ГІГ­Г®Г±ГЁГІГҐГ«ГјГ­Г® Г±ГҐГЎГї)
 
-/* создание фигуры */
+/* Г±Г®Г§Г¤Г Г­ГЁГҐ ГґГЁГЈГіГ°Г» */
 void createFigure(const Pattern& pat) {
 	figures.push_back(Figure());
 	actI = figures.size() - 1;
@@ -237,13 +237,13 @@ void createFigure(const Pattern& pat) {
 			f.createPoint(5 * PI / 3);
 			break;
 	}
-	f.pattern = pat; // запоминаем тип фигуры
+	f.pattern = pat; // Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ ГІГЁГЇ ГґГЁГЈГіГ°Г»
 }
 
 void paintFigures() {
 	for (int i = 0; i < figures.size(); i++) {
 		SelectObject(hDC, i == actI ? penActiveFigure : penPassiveFigure);
-		figures[i].paint(); // отрисовываем i-тую фигуру
+		figures[i].paint(); // Г®ГІГ°ГЁГ±Г®ГўГ»ГўГ ГҐГ¬ i-ГІГіГѕ ГґГЁГЈГіГ°Гі
 	}
 }
 
@@ -276,11 +276,11 @@ const vector<wstring> PATTERN_TYPES = {
 };
 const wstring INDEX_CAPTION = L"Index: ";
 
-int key_assigments_pos_y; // y координата строчки
-int leftPadding = 10; // левый отступ
-int bottomPadding = 20; // нижний отступ
-int leftFrame = leftPadding + 180; // толщина левой рамки
-int bottomFrame = bottomPadding + 52; // толщина нижней рамки
+int key_assigments_pos_y; // y ГЄГ®Г®Г°Г¤ГЁГ­Г ГІГ  Г±ГІГ°Г®Г·ГЄГЁ
+int leftPadding = 10; // Г«ГҐГўГ»Г© Г®ГІГ±ГІГіГЇ
+int bottomPadding = 20; // Г­ГЁГ¦Г­ГЁГ© Г®ГІГ±ГІГіГЇ
+int leftFrame = leftPadding + 180; // ГІГ®Г«Г№ГЁГ­Г  Г«ГҐГўГ®Г© Г°Г Г¬ГЄГЁ
+int bottomFrame = bottomPadding + 52; // ГІГ®Г«Г№ГЁГ­Г  Г­ГЁГ¦Г­ГҐГ© Г°Г Г¬ГЄГЁ
 
 /* This is where all the input to the window goes to */
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
@@ -308,18 +308,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			if (figures.size()) {
 				f.rebuild();
 				/*
-					Коррекция положения фигуры при пересечении ею границ
+					ГЉГ®Г°Г°ГҐГЄГ¶ГЁГї ГЇГ®Г«Г®Г¦ГҐГ­ГЁГї ГґГЁГЈГіГ°Г» ГЇГ°ГЁ ГЇГҐГ°ГҐГ±ГҐГ·ГҐГ­ГЁГЁ ГҐГѕ ГЈГ°Г Г­ГЁГ¶
 				*/
 				bool isLeftFrameCrossed = false, isBottomFrameCrossed = false;
 				int maxLeftFrameCrossedDist = 0, maxBottomFrameCrossedDist = 0;
-				// Найти наибольшие заступы: по х и по у
+				// ГЌГ Г©ГІГЁ Г­Г ГЁГЎГ®Г«ГјГёГЁГҐ Г§Г Г±ГІГіГЇГ»: ГЇГ® Гµ ГЁ ГЇГ® Гі
 				for (int i = 0; i < f.ps.size(); i++) {
-					// Если точка за левой границей
+					// Г…Г±Г«ГЁ ГІГ®Г·ГЄГ  Г§Г  Г«ГҐГўГ®Г© ГЈГ°Г Г­ГЁГ¶ГҐГ©
 					if (f.ps[i].x < leftFrame) {
 						if (maxLeftFrameCrossedDist < leftFrame - f.ps[i].x) maxLeftFrameCrossedDist = leftFrame - f.ps[i].x;
 						if (!isLeftFrameCrossed) isLeftFrameCrossed = true;
 					}
-					// Если точка за нижней границей
+					// Г…Г±Г«ГЁ ГІГ®Г·ГЄГ  Г§Г  Г­ГЁГ¦Г­ГҐГ© ГЈГ°Г Г­ГЁГ¶ГҐГ©
 					/* debug */
 					int drawnHeight = height(rect) - bottomFrame;
 					/* debug end */
@@ -328,7 +328,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 						if (!isBottomFrameCrossed) isBottomFrameCrossed = true;
 					}
 				}
-				// Если найден хоть один заступ по х/у - сместить центр фигуры на размер наиб. заступов по х/у
+				// Г…Г±Г«ГЁ Г­Г Г©Г¤ГҐГ­ ГµГ®ГІГј Г®Г¤ГЁГ­ Г§Г Г±ГІГіГЇ ГЇГ® Гµ/Гі - Г±Г¬ГҐГ±ГІГЁГІГј Г¶ГҐГ­ГІГ° ГґГЁГЈГіГ°Г» Г­Г  Г°Г Г§Г¬ГҐГ° Г­Г ГЁГЎ. Г§Г Г±ГІГіГЇГ®Гў ГЇГ® Гµ/Гі
 				if (isLeftFrameCrossed) {
 					f.x += maxLeftFrameCrossedDist;
 				}
@@ -365,7 +365,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			break;
 		}
 
-		// при изменении размера окна
+		// ГЇГ°ГЁ ГЁГ§Г¬ГҐГ­ГҐГ­ГЁГЁ Г°Г Г§Г¬ГҐГ°Г  Г®ГЄГ­Г 
 		case WM_SIZE:
 			GetClientRect(hwnd, &rect);
 			key_assigments_pos_y = rect.bottom - rect.top - bottomPadding;
@@ -456,7 +456,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					else f.reflect(Direction::horisontal);
 					break;
 
-				/* удаление фигуры */
+				/* ГіГ¤Г Г«ГҐГ­ГЁГҐ ГґГЁГЈГіГ°Г» */
 				case VK_DELETE:
 					if (figures.size()) {
 						figures.erase(figures.begin() + actI);
