@@ -20,7 +20,7 @@
 using namespace std;
 
 const double PI = 3.14159;
-HDC hDC; // mainForm OpenButton shiftFlag 
+HDC hDC;
 LPARAM lParam;
 HPEN passiveFigure_pen = CreatePen(PS_SOLID, 3, RGB(150, 75, 0)),
 activeFigure_pen = CreatePen(PS_SOLID, 6, RGB(255, 128, 0)),
@@ -110,7 +110,6 @@ public:
 	void paint() {
 		for (int i = 0; i < this->points.size(); i++) {
 			if (!this->points[i].isConnectToNext) {
-				// Åñëè ÍÅ ïîñëåäíÿÿ òî÷êà
 				if (i != this->points.size() - 1) {
 					MoveToEx(hDC, this->points[i + 1].x, this->points[i + 1].y, NULL);
 				}
