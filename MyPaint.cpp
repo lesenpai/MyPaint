@@ -1,8 +1,7 @@
 /*
-	Made in 23.05.2019 by De-R. & Pl.
+	= 2019 =
+	Made in 23.05 by De-R. & Pl.
 	= 2020 =
-	Edited in 02.02 by Le
-		- finished key assigment (bottom) line
 */
 
 /*
@@ -21,20 +20,20 @@
 using namespace std;
 
 const double PI = 3.14159;
-HDC hDC;
+HDC hDC; // mainForm OpenButton shiftFlag 
 LPARAM lParam;
-HPEN penPassiveFigure = CreatePen(PS_SOLID, 3, RGB(150, 75, 0)),
-penActiveFigure = CreatePen(PS_SOLID, 6, RGB(255, 128, 0)),
-penFrame = CreatePen(PS_SOLID, 3, RGB(0, 122, 204)),
-penDefault = CreatePen(PS_SOLID, 6, RGB(0, 0, 0));
+HPEN passiveFigure_pen = CreatePen(PS_SOLID, 3, RGB(150, 75, 0)),
+activeFigure_pen = CreatePen(PS_SOLID, 6, RGB(255, 128, 0)),
+frame_pen = CreatePen(PS_SOLID, 3, RGB(0, 122, 204)),
+default_pen = CreatePen(PS_SOLID, 6, RGB(0, 0, 0));
 RECT rect;
 
-/* òî÷êà - âåðøèíà ôèãóðû */
+/* Point */
 class Point {
 public:
 	int x, y;
-	double param; // çíà÷åíèå òî÷êè íà ÷èñëîâîé îêðóæíîñòè (çà öåíòð âçÿò öåíòð ôèãóðû)
-	bool isConnectToNext; // ïðè âûçîâå Figure.paint ñîåäèíÿòü òåêóùþþ òî÷êó ëèíèåé ñî ñëåäóþùåé
+	double param; // положение точки на числовой окружности относительно центра фигуры
+	bool isConnectToNext; // сообщает методу Figure.paint о необходимости проводить линию от данной точки к следующей
 	Point() {
 		this->x = 0;
 		this->y = 0;
@@ -55,19 +54,19 @@ public:
 	}
 };
 
-/* øàáëîíû ôèãóð */
+/* тип фигуры  */
 enum class Pattern {
-	equilateral_triangle,
-	romb,
-	square,
-	cross,
-	hexagon,
-	curve_triangle,
-	pentagon,
-	long_triangle
+	EQUILATERAL_TRIANGLE,
+	ROMB,
+	SQUARE,
+	CROSS,
+	HEXAGON,
+	CURVE_TRIANGLE,
+	PENTAGON,
+	LONG_TRIANGLE
 };
 
-/* øàáëîíû íàïðàâëåíèé */
+/* направление */
 enum class Direction {
 	left,
 	right,
@@ -75,139 +74,134 @@ enum class Direction {
 	horisontal
 };
 
-/* ôèãóðà */
+/* фигура */
 class Figure {
 public:
 	int x, y, r;
-	vector<Point> ps; // ìàññèâ òî÷åê
+	vector<Point> points; // точки
 	Pattern pattern;
 
 	Figure() {
 		this->x = this->y = this->r = 0;
-		this->pattern = Pattern::square;
+		this->pattern = Pattern::SQUARE;
 	}
 	Figure(int x, int y, int r) {
 		this->x = x;
 		this->y = y;
 		this->r = r;
-		this->pattern = Pattern::square;
+		this->pattern = Pattern::SQUARE;
 	}
 
-	/* Çàäàíèå òî÷êè íà îêðóæíîñòè ôèãóðû */
+	/* создает и добавляет точку в this.points */
 	void createPoint(double param, bool isConnectToNext = true) {
-		this->ps.push_back(Point(this->x + this->r * cos(param), this->y - this->r * sin(param), param, isConnectToNext));
+		this->points.push_back(Point(this->x + this->r * cos(param), this->y - this->r * sin(param), param, isConnectToNext));
 	}
 
-	/* Óñòàíîâêà çíà÷åíèé ñóùåñòâóþùåé òî÷êè*/
+	/* изменяет существующюю точку */
 	void setPoint(int index, double param) {
-		if (index < 0 || index >= this->ps.size())
+		if (index < 0 || index >= this->points.size())
 			return;
-		this->ps[index].x = this->x + this->r * cos(param);
-		this->ps[index].y = this->y - this->r * sin(param);
-		this->ps[index].param = param;
+		this->points[index].x = this->x + this->r * cos(param);
+		this->points[index].y = this->y - this->r * sin(param);
+		this->points[index].param = param;
 	}
 
-	/* Ñîåäèíåíÿåò òî÷åêè ëèíèÿìè */
+	/* рисует фигуру */
 	void paint() {
-		for (int i = 0; i < this->ps.size(); i++) {
-			// Åñëè òî÷êà íå ñîåäèíÿåòñÿ ñî ñëåäóþùåé (â ñëó÷àå ïîñëåäíåé òî÷êè - ñ ïåðâîé)
-			if (!this->ps[i].isConnectToNext) {
+		for (int i = 0; i < this->points.size(); i++) {
+			if (!this->points[i].isConnectToNext) {
 				// Åñëè ÍÅ ïîñëåäíÿÿ òî÷êà
-				if (i != this->ps.size() - 1) {
-					MoveToEx(hDC, this->ps[i + 1].x, this->ps[i + 1].y, NULL);
+				if (i != this->points.size() - 1) {
+					MoveToEx(hDC, this->points[i + 1].x, this->points[i + 1].y, NULL);
 				}
 				continue;
 			}
-			// Åñëè ïåðâàÿ òî÷êà
 			if (i == 0) {
-				MoveToEx(hDC, this->ps[0].x, this->ps[0].y, NULL);
+				MoveToEx(hDC, this->points[0].x, this->points[0].y, NULL);
 			}
-			// Åñëè ïîñëåäíÿÿ òî÷êà
-			if (i == this->ps.size() - 1) {
-				LineTo(hDC, this->ps[0].x, this->ps[0].y);
+			if (i == this->points.size() - 1) {
+				LineTo(hDC, this->points[0].x, this->points[0].y);
 			}
-			// Åñëè òî÷êà ìåæäó ïåðâîé è ïîñëåäíåé
 			else {
-				LineTo(hDC, this->ps[i + 1].x, this->ps[i + 1].y);
+				LineTo(hDC, this->points[i + 1].x, this->points[i + 1].y);
 			}
 		}
 	}
 
-	/* ïîâîðîò ôèãóðû */
+	/* поворачивает фигуру */
 	void rotate(Direction dir, double step) {
 		if (dir == Direction::left) {
-			for (int i = 0; i < this->ps.size(); i++) {
-				ps[i].param += step;
+			for (int i = 0; i < this->points.size(); i++) {
+				points[i].param += step;
 			}
 		}
 		else if (dir == Direction::right) {
-			for (int i = 0; i < this->ps.size(); i++) {
-				ps[i].param -= step;
+			for (int i = 0; i < this->points.size(); i++) {
+				points[i].param -= step;
 			}
 		}
 	}
 
-	/* îòðàæåíèå îòíîñèòåëüíî ñåáÿ */
+	/* отзеркаливает фигуру */
 	void reflect(Direction dir) {
 		if (dir == Direction::vertical) {
-			for (int i = 0; i < this->ps.size(); i++) {
-				this->ps[i].param = -this->ps[i].param;
+			for (int i = 0; i < this->points.size(); i++) {
+				this->points[i].param = -this->points[i].param;
 			}
 		}
 		if (dir == Direction::horisontal) {
-			for (int i = 0; i < this->ps.size(); i++) {
-				this->ps[i].param = PI - this->ps[i].param;
+			for (int i = 0; i < this->points.size(); i++) {
+				this->points[i].param = PI - this->points[i].param;
 			}
 		}
 	}
 
-	/* ïåðåóñòàíîâêà âåðøèí */
+	/* перестраивает точки фигуры по их param */
 	void rebuild() {
-		for (int i = 0; i < this->ps.size(); i++) {
-			this->setPoint(i, this->ps[i].param);
+		for (int i = 0; i < this->points.size(); i++) {
+			this->setPoint(i, this->points[i].param);
 		}
 	}
 };
 
-vector<Figure> figures; // ìàññèâ ôèãóð
-int actI = -1, // èíäåêñ àêòèâíîé ôèãóðû
-leftmostBorder = 130; // êðàéíÿÿ ëåâàÿ ãðàíèöà ðàñïîëîæåíèÿ äëÿ ôèãóðû
-bool flag_shift = false; // ïåðåêëþ÷àòåëü íà êíîïêó SHIFT (çåðêàëüíîå îòðàæåíèå ôèãóðû îòíîñèòåëüíî ñåáÿ)
+vector<Figure> figures; // массив фигур
+int acti = -1; // индекс активной фигуры
+bool shift_flag = false; // флаг на нажатие клавиши shift
 
-/* ñîçäàíèå ôèãóðû */
+/* добавляет фигуру в массив */
 void createFigure(const Pattern& pat) {
 	figures.push_back(Figure());
-	actI = figures.size() - 1;
-	Figure& f = figures[actI];
+	acti = figures.size() - 1;
+	Figure& f = figures[acti];
 	switch (pat) {
-		case Pattern::equilateral_triangle:
+		case Pattern::EQUILATERAL_TRIANGLE:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 2);
 			f.createPoint(0);
 			f.createPoint(PI);
 			break;
-		case Pattern::romb:
+		case Pattern::ROMB:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 2);
 			f.createPoint(0);
 			f.createPoint(3 * PI / 2);
 			f.createPoint(PI);
 			break;
-		case Pattern::square:
+		case Pattern::SQUARE:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 4);
 			f.createPoint(7 * PI / 4);
 			f.createPoint(5 * PI / 4);
 			f.createPoint(3 * PI / 4);
 			break;
-		case Pattern::cross:
+		case Pattern::CROSS:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 2);
 			f.createPoint(3 * PI / 2, false);
 			f.createPoint(PI);
 			f.createPoint(0, false);
 			break;
-		case Pattern::hexagon:
+		case Pattern::HEXAGON:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 3);
 			f.createPoint(0);
@@ -216,13 +210,13 @@ void createFigure(const Pattern& pat) {
 			f.createPoint(PI);
 			f.createPoint(2 * PI / 3);
 			break;
-		case Pattern::curve_triangle:
+		case Pattern::CURVE_TRIANGLE:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 3);
 			f.createPoint(0);
 			f.createPoint(PI);
 			break;
-		case Pattern::pentagon:
+		case Pattern::PENTAGON:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 3);
 			f.createPoint(0);
@@ -230,20 +224,20 @@ void createFigure(const Pattern& pat) {
 			f.createPoint(PI);
 			f.createPoint(2 * PI / 3);
 			break;
-		case Pattern::long_triangle:
+		case Pattern::LONG_TRIANGLE:
 			f = Figure(200, 100, 50);
 			f.createPoint(PI / 2);
 			f.createPoint(4 * PI / 3);
 			f.createPoint(5 * PI / 3);
 			break;
 	}
-	f.pattern = pat; // çàïîìèíàåì òèï ôèãóðû
+	f.pattern = pat;
 }
 
 void paintFigures() {
 	for (int i = 0; i < figures.size(); i++) {
-		SelectObject(hDC, i == actI ? penActiveFigure : penPassiveFigure);
-		figures[i].paint(); // îòðèñîâûâàåì i-òóþ ôèãóðó
+		SelectObject(hDC, i == acti ? activeFigure_pen : passiveFigure_pen);
+		figures[i].paint();
 	}
 }
 
@@ -276,17 +270,17 @@ const vector<wstring> PATTERN_TYPES = {
 };
 const wstring INDEX_CAPTION = L"Index: ";
 
-int key_assigments_pos_y; // y êîîðäèíàòà ñòðî÷êè
-int leftPadding = 10; // ëåâûé îòñòóï
-int bottomPadding = 20; // íèæíèé îòñòóï
-int leftFrame = leftPadding + 180; // òîëùèíà ëåâîé ðàìêè
-int bottomFrame = bottomPadding + 52; // òîëùèíà íèæíåé ðàìêè
+int KEY_ASSIGMENTS_pos_y; // позиция линии "key assigments" по у
+int leftPadding = 10; // левый отступ в окне
+int bottomPadding = 20; // нижний отступ в окне
+int leftFrame = leftPadding + 180; // размер левой рамки в окне
+int bottomFrame = bottomPadding + 52; // размер нижней рамки в окне
 
 /* This is where all the input to the window goes to */
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-	PAINTSTRUCT ps;
+	PAINTSTRUCT points;
 	RECT rect;
-	Figure& f = figures.size() ? figures[actI] : *&Figure();
+	Figure& f = figures.size() ? figures[acti] : *&Figure();
 
 	switch (Message) {
 
@@ -295,40 +289,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			break;
 		}
 		case WM_PAINT: {
-			hDC = BeginPaint(hwnd, &ps);
+			hDC = BeginPaint(hwnd, &points);
 			GetWindowRect(hwnd, &rect);
 
-			SelectObject(hDC, penFrame);
+			SelectObject(hDC, frame_pen);
 			MoveToEx(hDC, leftFrame, 0, NULL);
 			LineTo(hDC, leftFrame, height(rect) - bottomFrame);
 			MoveToEx(hDC, 0, height(rect) - bottomFrame, NULL);
 			LineTo(hDC, rect.right, height(rect) - bottomFrame);
-			SelectObject(hDC, penDefault);
+			SelectObject(hDC, default_pen);
 
 			if (figures.size()) {
 				f.rebuild();
 				/*
-					Êîððåêöèÿ ïîëîæåíèÿ ôèãóðû ïðè ïåðåñå÷åíèè åþ ãðàíèö
+					корректировка положения фигуры при выходе за допустимые границы
 				*/
 				bool isLeftFrameCrossed = false, isBottomFrameCrossed = false;
 				int maxLeftFrameCrossedDist = 0, maxBottomFrameCrossedDist = 0;
-				// Íàéòè íàèáîëüøèå çàñòóïû: ïî õ è ïî ó
-				for (int i = 0; i < f.ps.size(); i++) {
-					// Åñëè òî÷êà çà ëåâîé ãðàíèöåé
-					if (f.ps[i].x < leftFrame) {
-						if (maxLeftFrameCrossedDist < leftFrame - f.ps[i].x) maxLeftFrameCrossedDist = leftFrame - f.ps[i].x;
+				for (int i = 0; i < f.points.size(); i++) {
+					if (f.points[i].x < leftFrame) {
+						if (maxLeftFrameCrossedDist < leftFrame - f.points[i].x) maxLeftFrameCrossedDist = leftFrame - f.points[i].x;
 						if (!isLeftFrameCrossed) isLeftFrameCrossed = true;
 					}
-					// Åñëè òî÷êà çà íèæíåé ãðàíèöåé
-					/* debug */
-					int drawnHeight = height(rect) - bottomFrame;
-					/* debug end */
-					if (f.ps[i].y > height(rect) - bottomFrame) {
-						if (maxBottomFrameCrossedDist < f.ps[i].y - (height(rect) - bottomFrame)) maxBottomFrameCrossedDist = f.ps[i].y - (height(rect) - bottomFrame);
+					if (f.points[i].y > height(rect) - bottomFrame) {
+						if (maxBottomFrameCrossedDist < f.points[i].y - (height(rect) - bottomFrame)) maxBottomFrameCrossedDist = f.points[i].y - (height(rect) - bottomFrame);
 						if (!isBottomFrameCrossed) isBottomFrameCrossed = true;
 					}
 				}
-				// Åñëè íàéäåí õîòü îäèí çàñòóï ïî õ/ó - ñìåñòèòü öåíòð ôèãóðû íà ðàçìåð íàèá. çàñòóïîâ ïî õ/ó
 				if (isLeftFrameCrossed) {
 					f.x += maxLeftFrameCrossedDist;
 				}
@@ -339,10 +326,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 				paintFigures();
 			}
 
-			reflectMode = flag_shift ? L"H" : L"V";
+			reflectMode = shift_flag ? L"H" : L"V";
 			reflectModeFull = REFLECT_MODE_CATPTION + reflectMode;
 
-			TextOut(hDC, leftPadding, 10, (INDEX_CAPTION + to_wstring(actI)).c_str(), (INDEX_CAPTION + to_wstring(actI)).size());
+			TextOut(hDC, leftPadding, 10, (INDEX_CAPTION + to_wstring(acti)).c_str(), (INDEX_CAPTION + to_wstring(acti)).size());
 			TextOut(hDC, leftPadding, 40, L"X: ", 3);
 			TextOut(hDC, leftPadding, 70, L"Y: ", 3);
 			TextOut(hDC, leftPadding, 100, L"R: ", 3);
@@ -350,25 +337,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					(PATTERN_TYPES_CAPTION + (figures.size() ? PATTERN_TYPES[(int)f.pattern] : L"")).c_str(),
 					(PATTERN_TYPES_CAPTION + (figures.size() ? PATTERN_TYPES[(int)f.pattern] : L"")).size()
 			);
-			TextOut(hDC, leftPadding, key_assigments_pos_y, STR_KEY_ASSIGMENTS.c_str(), STR_KEY_ASSIGMENTS.size());
+			TextOut(hDC, leftPadding, KEY_ASSIGMENTS_pos_y, STR_KEY_ASSIGMENTS.c_str(), STR_KEY_ASSIGMENTS.size());
 			TextOut(hDC, leftPadding, 200, (reflectModeFull).c_str(), reflectModeFull.size());
 
 			if (figures.size()) {
-				SetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, actI, true);
+				SetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, acti, true);
 				SetDlgItemInt(hwnd, ID_EDIT_X, f.x, true);
 				SetDlgItemInt(hwnd, ID_EDIT_Y, f.y, true);
 				SetDlgItemInt(hwnd, ID_EDIT_R, f.r, true);
 				SetDlgItemInt(hwnd, ID_EDIT_TYPE, (UINT)f.pattern, true);
 			}
 			SetFocus(hwnd);
-			EndPaint(hwnd, &ps);
+			EndPaint(hwnd, &points);
 			break;
 		}
 
-		// ïðè èçìåíåíèè ðàçìåðà îêíà
+		// при изменении размера окна
 		case WM_SIZE:
 			GetClientRect(hwnd, &rect);
-			key_assigments_pos_y = rect.bottom - rect.top - bottomPadding;
+			KEY_ASSIGMENTS_pos_y = rect.bottom - rect.top - bottomPadding;
 			InvalidateRect(hwnd, &rect, -1);
 			break;
 
@@ -388,7 +375,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 			switch (LOWORD(wParam)) {
 				case ID_BUTTON:
 					if (GetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, NULL, true) <= figures.size() - 1) {
-						actI = GetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, NULL, true);
+						acti = GetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, NULL, true);
 					}
 					if (GetDlgItemInt(hwnd, ID_EDIT_R, NULL, true) < 20) {
 						f.r = 20;
@@ -407,17 +394,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 		}
 		case WM_KEYDOWN: {
 			switch (wParam) {
-				case VK_SHIFT: flag_shift = !flag_shift;
+				case VK_SHIFT: shift_flag = !shift_flag;
 					break;
 
 				case VK_LEFT:
-					if (actI > 0) actI--;
-					else actI = figures.size() - 1;
+					if (acti > 0) acti--;
+					else acti = figures.size() - 1;
 					break;
 
 				case VK_RIGHT:
-					if (actI < figures.size() - 1) actI++;
-					else actI = 0;
+					if (acti < figures.size() - 1) acti++;
+					else acti = 0;
 					break;
 
 				case VK_UP: f.r += 10;
@@ -427,51 +414,54 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 					if (f.r > 20) f.r -= 10;
 					break;
 
-				case VK_F1: createFigure(Pattern::equilateral_triangle);
+				case VK_F1: createFigure(Pattern::EQUILATERAL_TRIANGLE);
 					break;
 
-				case VK_F2: createFigure(Pattern::romb);
+				case VK_F2: createFigure(Pattern::ROMB);
 					break;
 
-				case VK_F3: createFigure(Pattern::square);
+				case VK_F3: createFigure(Pattern::SQUARE);
 					break;
 
-				case VK_F4: createFigure(Pattern::cross);
+				case VK_F4: createFigure(Pattern::CROSS);
 					break;
 
-				case VK_F5: createFigure(Pattern::hexagon);
+				case VK_F5: createFigure(Pattern::HEXAGON);
 					break;
 
-				case VK_F6: createFigure(Pattern::curve_triangle);
+				case VK_F6: createFigure(Pattern::CURVE_TRIANGLE);
 					break;
 
-				case VK_F7: createFigure(Pattern::pentagon);
+				case VK_F7: createFigure(Pattern::PENTAGON);
 					break;
 
-				case VK_F8: createFigure(Pattern::long_triangle);
+				case VK_F8: createFigure(Pattern::LONG_TRIANGLE);
 					break;
 
-				case 0x52: // 'R' key
-					if (flag_shift) f.reflect(Direction::vertical);
+				/* 'R' key */
+				case 0x52:
+					if (shift_flag) f.reflect(Direction::vertical);
 					else f.reflect(Direction::horisontal);
 					break;
 
-				/* óäàëåíèå ôèãóðû */
+				/* 
+					удаление фигуры
+				*/
 				case VK_DELETE:
 					if (figures.size()) {
-						figures.erase(figures.begin() + actI);
+						figures.erase(figures.begin() + acti);
 						if (!figures.size()) {
-							actI = -1;
-							SetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, actI, true);
+							acti = -1;
+							SetDlgItemInt(hwnd, ID_EDIT_FIGURE_INDEX, acti, true);
 							SetDlgItemInt(hwnd, ID_EDIT_X, 0, true);
 							SetDlgItemInt(hwnd, ID_EDIT_Y, 0, true);
 							SetDlgItemInt(hwnd, ID_EDIT_R, 0, true);
 							SetDlgItemInt(hwnd, ID_EDIT_TYPE, 0, true);
 						}
-						if (figures.size() == 1) actI = 0;
+						if (figures.size() == 1) acti = 0;
 						else {
-							if (actI == 0) actI = figures.size() - 1;
-							else actI--;
+							if (acti == 0) acti = figures.size() - 1;
+							else acti--;
 						}
 					}
 					break;
@@ -534,7 +524,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	);
 
 	GetClientRect(hwnd, &rect);
-	key_assigments_pos_y = rect.bottom - rect.top - bottomPadding;
+	KEY_ASSIGMENTS_pos_y = rect.bottom - rect.top - bottomPadding;
 
 	h_EditX = CreateWindow(L"EDIT", L"", WS_BORDER | WS_CHILD, EDITS_OFFSET_X, 40, 50, 20, hwnd, (HMENU)ID_EDIT_X, hInstance, NULL);
 	h_EditY = CreateWindow(L"EDIT", L"", WS_BORDER | WS_CHILD, EDITS_OFFSET_X, 70, 50, 20, hwnd, (HMENU)ID_EDIT_Y, hInstance, NULL);
